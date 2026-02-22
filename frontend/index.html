@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,32 +13,33 @@
     <!-- Main CSS -->
     <link rel="stylesheet" href="./css/index.css">
 </head>
-<body>
-    <div id="app">
-        <header class="header">
-            <div class="container">
-                <h1 class="logo">HotDeals</h1>
-                <p class="subtitle">Premium deals curated for you</p>
-            </div>
-        </header>
 
-        <main class="main-content">
-            <div class="container" id="main-container">
-                <!-- Deal grid will be injected here by ui.js -->
-                <div id="deal-list" class="deal-grid">
-                    <div class="placeholder-text">Loading deals...</div>
-                </div>
+<body>
+    <header>
+        <h1>핫딜 모아보기</h1>
+        <div class="controls">
+            <div class="filter-group">
+                <span>출처:</span>
+                <button class="filter-btn active" data-source="all">전체</button>
+                <button class="filter-btn" data-source="fm korea">FM코리아</button>
+                <button class="filter-btn" data-source="ppomppu">뽐뿌</button>
+                <button class="filter-btn" data-source="quasarzone">퀘이사존</button>
             </div>
-        </main>
-        
-        <footer class="footer">
-            <div class="container">
-                <p>&copy; 2026 Antigravity. All rights reserved.</p>
+            <div class="sort-group">
+                <label for="sort-select">정렬:</label>
+                <select id="sort-select">
+                    <option value="latest">최신순</option>
+                    <option value="price-asc">가격 낮은순</option>
+                    <option value="price-desc">가격 높은순</option>
+                </select>
             </div>
-        </footer>
-    </div>
-    
+        </div>
+    </header>
+    <main id="deals-container"></main>
+    <div id="sentinel" class="text-center py-4">로딩중...</div>
+
     <!-- Scripts -->
     <script type="module" src="./js/app.js"></script>
 </body>
+
 </html>

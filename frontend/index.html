@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="HotDeals - Premium deals curated for you">
+    <title>Antigravity HotDeals</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="./css/index.css">
+</head>
+<body>
+    <div id="app">
+        <header class="header">
+            <div class="container">
+                <h1 class="logo">HotDeals</h1>
+                <p class="subtitle">Premium deals curated for you</p>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="container" id="main-container">
+                <!-- Deal grid will be injected here by ui.js -->
+                <div id="deal-list" class="deal-grid">
+                    <div class="placeholder-text">Loading deals...</div>
+                </div>
+            </div>
+        </main>
+        
+        <footer class="footer">
+            <div class="container">
+                <p>&copy; 2026 Antigravity. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- Scripts -->
+    <script type="module" src="./js/app.js"></script>
+</body>
+</html>

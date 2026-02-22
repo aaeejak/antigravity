@@ -23,6 +23,7 @@ class SupabaseHotDealRepository(HotDealRepository):
                 "deal_id": deal.id,
                 "title": deal.title,
                 "url": deal.url,
+                "thumbnail": deal.thumbnail,
                 "price": deal.price,
                 "original_price": deal.original_price,
                 "source": deal.source

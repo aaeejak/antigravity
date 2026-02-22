@@ -8,6 +8,9 @@ def mock_fmkorea_html():
         <ul>
             <li class="li_best2_pop0">
                 <div class="li">
+                    <a href="/45678" class="thumb">
+                        <img src="//znfmkorea.com/image.jpg" alt="test">
+                    </a>
                     <h3 class="title">
                         <a href="/45678" tabindex="-1">
                             [11마존] 커세어 K70 PRO 미니 무선
@@ -49,12 +52,14 @@ def test_fmkorea_scraper_parses_html(mock_fmkorea_html):
     assert len(deals) == 2
     assert deals[0].title == "[11마존] 커세어 K70 PRO 미니 무선"
     assert deals[0].url == "https://fmkorea.com/45678"
+    assert deals[0].thumbnail == "https://znfmkorea.com/image.jpg"
     assert deals[0].price == "120,000원"
     assert deals[0].original_price == "150,000원"
     assert deals[0].source == "fmkorea"
     
     assert deals[1].title == "[G마켓] 햇반 210g 36개"
     assert deals[1].url == "https://fmkorea.com/99999"
+    assert deals[1].thumbnail is None
     assert deals[1].price == "32,400원"
     assert deals[1].original_price is None
     assert deals[1].source == "fmkorea"

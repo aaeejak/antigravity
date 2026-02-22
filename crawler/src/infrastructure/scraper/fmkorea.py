@@ -50,10 +50,21 @@ class FmkoreaScraper(Scraper):
                 elif '원' in part and '원가' in part:
                     original_price = part.replace('(원가)', '').replace('원가', '').strip()
                     
+            # 썸네일 경로 추출
+            thumbnail = None
+            thumb_link = item.select_one('.thumb img')
+            if thumb_link:
+                # src가 없으면 data-original 등을 확인, 펨코 구조에 따름
+                thumbnail = thumb_link.get('src') or thumb_link.get('data-original')
+                # 프로토콜 추가
+                if thumbnail and thumbnail.startswith('//'):
+                    thumbnail = f"https:{thumbnail}"
+            
             deals.append(HotDeal(
                 id=url_id,
                 title=raw_title,
                 url=full_url,
+                thumbnail=thumbnail,
                 price=price,
                 original_price=original_price,
                 source="fmkorea"

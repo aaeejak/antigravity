@@ -6,6 +6,7 @@ CREATE TABLE public.deals (
     deal_id TEXT NOT NULL, -- 크롤링된 사이트의 글 번호
     title TEXT NOT NULL,
     url TEXT NOT NULL UNIQUE, -- 중복 입력을 막기 위한 Unique 제약 조건
+    thumbnail TEXT, -- 썸네일 이미지 URL
     price TEXT,
     original_price TEXT,
     source TEXT NOT NULL,

@@ -7,6 +7,7 @@ import crypto from 'crypto';
 dotenv.config();
 
 const url = "https://www.fmkorea.com/hotdeal";
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 async function main() {
     console.log("Fetching FMKorea Hot Deals (1st page)...");
@@ -56,14 +57,22 @@ async function main() {
                     headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
                 }).then(r => r.text());
                 const _$ = cheerio.load(articleHtml);
-                const firstImg = _$('.xe_content img').first();
-                if (firstImg.length) {
-                    let src = firstImg.attr('src');
-                    if (src) {
-                        if (src.startsWith('//')) src = `https:${src}`;
-                        else if (src.startsWith('/')) src = `https://fmkorea.com${src}`;
-                        thumbnail = src;
+                const imgs = _$('.xe_content img').toArray();
+                let validSrc = null;
+                for (const img of imgs) {
+                    let src = _$(img).attr('src');
+                    if (src && !src.includes('transparent') && !src.includes('clear')) {
+                        validSrc = src;
+                        break;
                     }
+                }
+                if (validSrc) {
+                    if (validSrc.startsWith('//')) validSrc = `https:${validSrc}`;
+                    else if (validSrc.startsWith('/')) validSrc = `https://fmkorea.com${validSrc}`;
+                    thumbnail = validSrc;
+                    console.log(`[OK] High-res image found for ${fullUrl}:`, validSrc);
+                } else {
+                    console.log(`[NOK] No valid high-res image for ${fullUrl}. (imgs length: ${imgs.length})`);
                 }
             } catch (err) {
                 console.warn(`Failed to fetch high-res image for ${fullUrl}:`, err.message);
@@ -82,6 +91,8 @@ async function main() {
                     }
                 }
             }
+
+            await sleep(1000); // 1초 대기
 
             const hash = crypto.createHash('sha256').update(fullUrl).digest('hex');
             const deterministicId = [

@@ -49,12 +49,15 @@ async function main() {
                 }
             }
 
-            const thumbLink = $(element).find('.thumb img');
+            const thumbLink = $(element).find('img.thumb');
             let thumbnail = null;
             if (thumbLink.length) {
-                thumbnail = thumbLink.attr('src') || thumbLink.attr('data-original');
+                thumbnail = thumbLink.attr('data-original') || thumbLink.attr('src');
                 if (thumbnail && thumbnail.startsWith('//')) {
                     thumbnail = `https:${thumbnail}`;
+                }
+                if (thumbnail && thumbnail.includes('transparent.gif')) {
+                    thumbnail = null;
                 }
             }
 

@@ -25,9 +25,10 @@ async function main() {
         const $ = cheerio.load(html);
         const deals = [];
 
-        $('.fm_best_widget ul li .li').each((_, element) => {
+        const elements = $('.fm_best_widget ul li .li').toArray();
+        for (const element of elements) {
             const titleTag = $(element).find('h3.title a');
-            if (!titleTag.length) return;
+            if (!titleTag.length) continue;
 
             const rawTitle = titleTag.text().trim();
             const urlPath = titleTag.attr('href') || '';
@@ -49,15 +50,36 @@ async function main() {
                 }
             }
 
-            const thumbLink = $(element).find('img.thumb');
             let thumbnail = null;
-            if (thumbLink.length) {
-                thumbnail = thumbLink.attr('data-original') || thumbLink.attr('src');
-                if (thumbnail && thumbnail.startsWith('//')) {
-                    thumbnail = `https:${thumbnail}`;
+            try {
+                const articleHtml = await fetch(fullUrl, {
+                    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+                }).then(r => r.text());
+                const _$ = cheerio.load(articleHtml);
+                const firstImg = _$('.xe_content img').first();
+                if (firstImg.length) {
+                    let src = firstImg.attr('src');
+                    if (src) {
+                        if (src.startsWith('//')) src = `https:${src}`;
+                        else if (src.startsWith('/')) src = `https://fmkorea.com${src}`;
+                        thumbnail = src;
+                    }
                 }
-                if (thumbnail && thumbnail.includes('transparent.gif')) {
-                    thumbnail = null;
+            } catch (err) {
+                console.warn(`Failed to fetch high-res image for ${fullUrl}:`, err.message);
+            }
+
+            // Fallback to widget thumb if article image is missing
+            if (!thumbnail) {
+                const thumbLink = $(element).find('img.thumb');
+                if (thumbLink.length) {
+                    thumbnail = thumbLink.attr('data-original') || thumbLink.attr('src');
+                    if (thumbnail && thumbnail.startsWith('//')) {
+                        thumbnail = `https:${thumbnail}`;
+                    }
+                    if (thumbnail && thumbnail.includes('transparent.gif')) {
+                        thumbnail = null;
+                    }
                 }
             }
 
@@ -80,7 +102,7 @@ async function main() {
                 original_price: originalPrice,
                 source: "fmkorea"
             });
-        });
+        }
 
         console.log(`Parsed ${deals.length} deals.`);
         if (deals.length === 0) return;

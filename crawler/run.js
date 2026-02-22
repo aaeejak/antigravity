@@ -78,19 +78,7 @@ async function main() {
                 console.warn(`Failed to fetch high-res image for ${fullUrl}:`, err.message);
             }
 
-            // Fallback to widget thumb if article image is missing
-            if (!thumbnail) {
-                const thumbLink = $(element).find('img.thumb');
-                if (thumbLink.length) {
-                    thumbnail = thumbLink.attr('data-original') || thumbLink.attr('src');
-                    if (thumbnail && thumbnail.startsWith('//')) {
-                        thumbnail = `https:${thumbnail}`;
-                    }
-                    if (thumbnail && thumbnail.includes('transparent.gif')) {
-                        thumbnail = null;
-                    }
-                }
-            }
+            // Fallback removed to prevent blurry 70x50 thumbnails.
 
             await sleep(1000); // 1초 대기
 

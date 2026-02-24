@@ -36,6 +36,13 @@
         </div>
     </header>
     <main id="deals-container"></main>
+    <div id="env-error-container" style="display: none; padding: 2rem; background-color: #ffebee; color: #c62828; text-align: center; border-radius: 8px; margin: 2rem;">
+        <h3>⚠️ 환경 설정 오류 (Environment Variable Missing)</h3>
+        <p>Supabase 연동을 위한 환경 변수가 설정되지 않았습니다.</p>
+        <p>프로젝트 루트에 <code>.env</code> 파일을 만들고 다음 값을 추가해주세요:</p>
+        <pre style="background: rgba(0,0,0,0.1); padding: 1rem; border-radius: 4px; display: inline-block; text-align: left;">VITE_SUPABASE_URL=your_project_url
+VITE_SUPABASE_ANON_KEY=your_anon_key</pre>
+    </div>
     <div id="sentinel" class="text-center py-4">로딩중...</div>
 
     <!-- Scripts -->

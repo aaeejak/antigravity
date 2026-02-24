@@ -18,7 +18,12 @@ async function initApp() {
         applyFiltersAndSort();
     } catch (error) {
         console.error('Failed to initialize app data:', error);
-        renderError(error);
+        if (error.message.includes('Supabase credentials missing')) {
+            document.getElementById('env-error-container').style.display = 'block';
+            document.getElementById('sentinel').style.display = 'none';
+        } else {
+            renderError(error);
+        }
     }
 }
 

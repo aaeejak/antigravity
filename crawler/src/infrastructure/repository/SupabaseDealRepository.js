@@ -1,20 +1,34 @@
-import { createClient } from '@supabase/supabase-js';
 import { DealRepository } from '../../domain/deal/DealRepository.js';
 
 export class SupabaseDealRepository extends DealRepository {
-    constructor(supabaseUrl, supabaseKey) {
+    /**
+     * @param {import('@supabase/supabase-js').SupabaseClient} supabaseClient 
+     */
+    constructor(supabaseClient) {
         super();
-        if (!supabaseUrl || !supabaseKey) {
-            throw new Error("Missing Supabase credentials for repository");
+        if (!supabaseClient) {
+            throw new Error("Missing Supabase client for repository");
         }
-        this.supabase = createClient(supabaseUrl, supabaseKey);
+        this.supabase = supabaseClient;
     }
 
     async saveAll(deals) {
         if (!deals || deals.length === 0) return;
 
-        console.log(`Upserting ${deals.length} deals to Supabase via RPC...`);
-        const { error } = await this.supabase.rpc('insert_deals', { deal_data: deals });
+        console.log(`Upserting ${deals.length} deals to Supabase...`);
+        const { error } = await this.supabase.from('deals').upsert(
+            deals.map(d => ({
+                id: d.id,
+                title: d.title,
+                url: d.url,
+                source: d.source,
+                deal_id: d.deal_id,
+                price: d.price,
+                original_price: d.original_price,
+                thumbnail: d.thumbnail,
+            })),
+            { onConflict: 'url' }
+        );
 
         if (error) {
             throw new Error(`Supabase upsert failed: ${error.message}`);

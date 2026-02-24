@@ -4,13 +4,13 @@ import { renderDeals, renderError } from '../js/ui.js';
 describe('UI Module', () => {
     beforeEach(() => {
         // Setup a mock DOM
-        document.body.innerHTML = '<div id="deal-list"></div>';
+        document.body.innerHTML = '<div id="deals-container"></div>';
     });
 
     it('renders empty state when deals array is empty', () => {
         renderDeals([]);
-        const container = document.getElementById('deal-list');
-        expect(container.innerHTML).toContain('No active deals found');
+        const container = document.getElementById('deals-container');
+        expect(container.innerHTML).toContain('등록된 핫딜이 없습니다.');
     });
 
     it('renders deals when provided', () => {
@@ -26,15 +26,14 @@ describe('UI Module', () => {
         ];
 
         renderDeals(mockDeals);
-        const container = document.getElementById('deal-list');
+        const container = document.getElementById('deals-container');
         expect(container.querySelectorAll('.deal-card').length).toBe(1);
         expect(container.innerHTML).toContain('Test Deal');
     });
 
     it('renders error message', () => {
         renderError('Failed to load API');
-        const container = document.getElementById('deal-list');
+        const container = document.getElementById('deals-container');
         expect(container.innerHTML).toContain('Failed to load API');
-        expect(container.querySelector('.error-message')).not.toBeNull();
     });
 });

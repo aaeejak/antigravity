@@ -1,4 +1,4 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+import { createClient } from '@supabase/supabase-js';
 
 // Use Vite's import.meta.env or fallback to empty strings.
 // The user needs to provide a .env file with these variables:

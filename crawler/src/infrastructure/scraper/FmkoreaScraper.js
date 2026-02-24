@@ -1,5 +1,6 @@
 import * as cheerio from 'cheerio';
 import crypto from 'crypto';
+import { ProxyAgent } from 'undici';
 import { Deal } from '../../domain/deal/Deal.js';
 import { Scraper } from '../../domain/deal/Scraper.js';
 
@@ -8,11 +9,17 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 export class FmkoreaScraper extends Scraper {
     async scrape() {
         const url = "https://www.fmkorea.com/hotdeal";
-        const response = await fetch(url, {
+        const fetchOptions = {
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
             }
-        });
+        };
+
+        if (process.env.PROXY_URL) {
+            fetchOptions.dispatcher = new ProxyAgent(process.env.PROXY_URL);
+        }
+
+        const response = await fetch(url, fetchOptions);
 
         if (!response.ok) {
             throw new Error(`Failed to fetch Fmkorea: ${response.status} ${response.statusText}`);

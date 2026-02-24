@@ -1,14 +1,21 @@
 import * as cheerio from 'cheerio';
 import crypto from 'crypto';
+import { ProxyAgent } from 'undici';
 import { Deal } from '../../domain/deal/Deal.js';
 import { Scraper } from '../../domain/deal/Scraper.js';
 
 export class QuasarzoneScraper extends Scraper {
     async scrape() {
         const url = "https://quasarzone.com/bbs/qb_saleinfo";
-        const response = await fetch(url, {
+        const fetchOptions = {
             headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
-        });
+        };
+
+        if (process.env.PROXY_URL) {
+            fetchOptions.dispatcher = new ProxyAgent(process.env.PROXY_URL);
+        }
+
+        const response = await fetch(url, fetchOptions);
         if (!response.ok) throw new Error(`Quasarzone fetch failed: ${response.status}`);
         const html = await response.text();
         return this.parseHtml(html);

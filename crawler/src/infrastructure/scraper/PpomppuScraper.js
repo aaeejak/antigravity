@@ -57,7 +57,7 @@ export class PpomppuScraper extends Scraper {
                         title,
                         url: urlPath,
                         deal_id: urlPath.split('no=').pop() || hash.substring(0, 8),
-                        price: '0', // Ppomppu title doesn't strictly separate price always, we'll extract it if possible or leave 0
+                        price: title.match(/([0-9,]+)\s*원/) ? title.match(/([0-9,]+)\s*원/)[1] : '0',
                         source: 'ppomppu',
                         thumbnail
                     }));
@@ -98,7 +98,7 @@ export class PpomppuScraper extends Scraper {
                     title,
                     url: urlPath,
                     deal_id: urlPath.split('no=').pop() || hash.substring(0, 8),
-                    price: '0',
+                    price: title.match(/([0-9,]+)\s*원/) ? title.match(/([0-9,]+)\s*원/)[1] : '0',
                     source: 'ppomppu',
                     thumbnail
                 }));

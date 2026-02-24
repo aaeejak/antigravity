@@ -29,7 +29,7 @@ export class QuasarzoneScraper extends Scraper {
             let urlPath = titleTag.attr('href') || '';
             const url = urlPath.startsWith('/') ? `https://quasarzone.com${urlPath}` : urlPath;
 
-            const priceText = $(el).find('.market-info-sub p span').first().text().trim();
+            const priceText = $(el).find('.text-orange').first().text().trim();
             const price = priceText.replace(/[^0-9]/g, ''); // Numeric price
 
             // Get thumbnail from the left side

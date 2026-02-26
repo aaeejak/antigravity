@@ -121,6 +121,8 @@ export class FmkoreaScraper extends Scraper {
 
             await sleep(1000); // 1초 대기
 
+            if (!posted_at) continue;
+
             const hash = crypto.createHash('sha256').update(fullUrl).digest('hex');
             const deterministicId = [
                 hash.substring(0, 8),

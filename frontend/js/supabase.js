@@ -25,6 +25,7 @@ export async function fetchLatestDeals(limit = 20) {
         const { data, error } = await supabase
             .from('deals')
             .select('*')
+            .not('created_at', 'is', null)
             .order('created_at', { ascending: false })
             .limit(limit);
 

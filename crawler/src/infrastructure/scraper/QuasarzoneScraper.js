@@ -68,7 +68,7 @@ export class QuasarzoneScraper extends Scraper {
                 }
             }
 
-            if (title && url) {
+            if (title && url && posted_at) {
                 const urlId = url.split('/').pop();
                 const hash = crypto.createHash('sha256').update(url).digest('hex');
                 const deterministicId = [

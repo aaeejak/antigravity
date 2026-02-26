@@ -60,7 +60,7 @@ export class PpomppuScraper extends Scraper {
                     }
                 }
 
-                if (title && urlPath) {
+                if (title && urlPath && posted_at) {
                     const hash = crypto.createHash('sha256').update(urlPath).digest('hex');
                     const deterministicId = [
                         hash.substring(0, 8),
@@ -124,7 +124,7 @@ export class PpomppuScraper extends Scraper {
                 }
             }
 
-            if (title && urlPath) {
+            if (title && urlPath && posted_at) {
                 const hash = crypto.createHash('sha256').update(urlPath).digest('hex');
                 const deterministicId = [
                     hash.substring(0, 8),

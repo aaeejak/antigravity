@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 
 export class Deal {
-    constructor({ title, url, deal_id, source, price = '0', original_price = null, thumbnail = null, id = null }) {
+    constructor({ title, url, deal_id, source, price = '0', original_price = null, thumbnail = null, id = null, posted_at = null }) {
         if (!title) throw new Error('Title is required');
         if (!url) throw new Error('URL is required');
 
@@ -12,6 +12,7 @@ export class Deal {
         this.price = price;
         this.original_price = original_price;
         this.thumbnail = thumbnail;
+        this.posted_at = posted_at;
 
         // auto-generate ID if not provided, for simplicity we use hash of URL
         this.id = id || this.generateDeterministicId(this.url);

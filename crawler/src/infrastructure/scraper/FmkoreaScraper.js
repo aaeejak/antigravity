@@ -70,6 +70,7 @@ export class FmkoreaScraper extends Scraper {
             }
 
             let thumbnail = null;
+            let posted_at = null;
             try {
                 const articleHtml = await fetch(fullUrl, {
                     headers: {
@@ -103,6 +104,15 @@ export class FmkoreaScraper extends Scraper {
                     else if (validSrc.startsWith('/')) validSrc = `https://fmkorea.com${validSrc}`;
                     thumbnail = validSrc;
                 }
+
+                const dateStr = _$('.date.m_no').text().trim(); // e.g. "2026.02.26 15:53"
+                if (dateStr) {
+                    const match = dateStr.match(/(\d{4})\.(\d{2})\.(\d{2})\s+(\d{2}):(\d{2})/);
+                    if (match) {
+                        const [, year, mm, dd, hh, min] = match;
+                        posted_at = new Date(`${year}-${mm}-${dd}T${hh}:${min}:00+09:00`).toISOString();
+                    }
+                }
             } catch (err) {
                 console.warn(`Failed to fetch high-res image for ${fullUrl}:`, err.message);
             }
@@ -128,7 +138,8 @@ export class FmkoreaScraper extends Scraper {
                 thumbnail,
                 price,
                 original_price: originalPrice,
-                source: "fmkorea"
+                source: "fmkorea",
+                posted_at
             }));
         }
         return deals;

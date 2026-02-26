@@ -14,7 +14,7 @@ describe('Deal Domain Entity', () => {
         }).toThrow('URL is required');
     });
 
-    it('should create a valid Deal entity', () => {
+    it('should create a valid Deal entity with default posted_at as null', () => {
         const deal = new Deal({
             title: 'Test Deal',
             url: 'https://example.com/1',
@@ -26,6 +26,19 @@ describe('Deal Domain Entity', () => {
         expect(deal.title).toBe('Test Deal');
         expect(deal.url).toBe('https://example.com/1');
         expect(deal.source).toBe('test');
+        expect(deal.posted_at).toBeNull();
         expect(deal.id).toBeDefined(); // should auto-generate deterministic ID
+    });
+
+    it('should create a valid Deal entity with a specific posted_at time', () => {
+        const postedAt = '2026-02-27T10:00:00.000Z';
+        const deal = new Deal({
+            title: 'Test Deal',
+            url: 'https://example.com/1',
+            source: 'test',
+            posted_at: postedAt
+        });
+
+        expect(deal.posted_at).toBe(postedAt);
     });
 });

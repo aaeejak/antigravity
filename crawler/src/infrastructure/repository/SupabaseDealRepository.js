@@ -17,16 +17,22 @@ export class SupabaseDealRepository extends DealRepository {
 
         console.log(`Upserting ${deals.length} deals to Supabase...`);
         const { error } = await this.supabase.from('deals').upsert(
-            deals.map(d => ({
-                id: d.id,
-                title: d.title,
-                url: d.url,
-                source: d.source,
-                deal_id: d.deal_id,
-                price: d.price,
-                original_price: d.original_price,
-                thumbnail: d.thumbnail,
-            })),
+            deals.map(d => {
+                const item = {
+                    id: d.id,
+                    title: d.title,
+                    url: d.url,
+                    source: d.source,
+                    deal_id: d.deal_id,
+                    price: d.price,
+                    original_price: d.original_price,
+                    thumbnail: d.thumbnail,
+                };
+                if (d.posted_at) {
+                    item.created_at = d.posted_at;
+                }
+                return item;
+            }),
             { onConflict: 'url' }
         );
 

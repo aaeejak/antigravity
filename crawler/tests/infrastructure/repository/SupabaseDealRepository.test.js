@@ -19,7 +19,7 @@ describe('SupabaseDealRepository', () => {
     it('should upsert deals ignoring conflicts on "url"', async () => {
         const repo = new SupabaseDealRepository(mockSupabaseClient);
         const deals = [
-            new Deal({ title: 'Deal 1', url: 'http://example.com/1', source: 'fmkorea', price: '1000' }),
+            new Deal({ title: 'Deal 1', url: 'http://example.com/1', source: 'fmkorea', price: '1000', posted_at: '2026-02-26T15:00:00.000Z' }),
             new Deal({ title: 'Deal 2', url: 'http://example.com/2', source: 'quasarzone', price: '2000' })
         ];
 
@@ -27,16 +27,29 @@ describe('SupabaseDealRepository', () => {
 
         expect(mockSupabaseClient.from).toHaveBeenCalledWith('deals');
         expect(mockSupabaseClient.from().upsert).toHaveBeenCalledWith(
-            deals.map(d => ({
-                id: d.id,
-                title: d.title,
-                url: d.url,
-                source: d.source,
-                deal_id: d.deal_id,
-                price: d.price,
-                original_price: null,
-                thumbnail: null,
-            })),
+            [
+                {
+                    id: deals[0].id,
+                    title: deals[0].title,
+                    url: deals[0].url,
+                    source: deals[0].source,
+                    deal_id: deals[0].deal_id,
+                    price: deals[0].price,
+                    original_price: null,
+                    thumbnail: null,
+                    created_at: '2026-02-26T15:00:00.000Z'
+                },
+                {
+                    id: deals[1].id,
+                    title: deals[1].title,
+                    url: deals[1].url,
+                    source: deals[1].source,
+                    deal_id: deals[1].deal_id,
+                    price: deals[1].price,
+                    original_price: null,
+                    thumbnail: null,
+                }
+            ],
             { onConflict: 'url' }
         );
     });

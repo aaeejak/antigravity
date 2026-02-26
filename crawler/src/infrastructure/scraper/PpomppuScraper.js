@@ -42,6 +42,24 @@ export class PpomppuScraper extends Scraper {
                     if (thumbnail && thumbnail.startsWith('//')) thumbnail = `https:${thumbnail}`;
                 }
 
+                let posted_at = null;
+                const timeTag = tr.find('td[title], td.eng.list_vspace');
+                let timeStr = timeTag.attr('title') || timeTag.text().trim() || tr.find('time.baseList-time').text().trim() || tr.find('nobr.eng').attr('title') || tr.find('nobr.eng').text().trim();
+                if (timeStr) {
+                    // Format is usually "YY.MM.DD HH:mm:ss"
+                    const match = timeStr.match(/(\d{2})\.(\d{2})\.(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/);
+                    if (match) {
+                        const [, yy, mm, dd, hh, min, ss] = match;
+                        const year = parseInt(yy, 10) + 2000;
+                        posted_at = new Date(`${year}-${mm}-${dd}T${hh}:${min}:${ss}+09:00`).toISOString();
+                    } else if (timeStr.includes(':')) {
+                        // "HH:mm:ss" means today
+                        const now = new Date();
+                        const todayStr = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' }); // YYYY-MM-DD
+                        posted_at = new Date(`${todayStr}T${timeStr}+09:00`).toISOString();
+                    }
+                }
+
                 if (title && urlPath) {
                     const hash = crypto.createHash('sha256').update(urlPath).digest('hex');
                     const deterministicId = [
@@ -59,7 +77,8 @@ export class PpomppuScraper extends Scraper {
                         deal_id: urlPath.split('no=').pop() || hash.substring(0, 8),
                         price: title.match(/([0-9,]+)\s*원/) ? title.match(/([0-9,]+)\s*원/)[1] : '0',
                         source: 'ppomppu',
-                        thumbnail
+                        thumbnail,
+                        posted_at
                     }));
                 }
             }
@@ -83,6 +102,28 @@ export class PpomppuScraper extends Scraper {
                 if (thumbnail && thumbnail.startsWith('//')) thumbnail = `https:${thumbnail}`;
             }
 
+            let posted_at = null;
+            const timeTag = $(el).find('td[title], td.eng.list_vspace');
+            let timeStr = timeTag.attr('title') || timeTag.text().trim() || $(el).find('time.baseList-time').text().trim() || $(el).find('nobr.eng').attr('title') || $(el).find('nobr.eng').text().trim();
+            // sometimes title is inside a span
+            if (!timeStr) {
+                timeStr = $(el).find('[title]').attr('title');
+            }
+            if (timeStr) {
+                // Format is usually "YY.MM.DD HH:mm:ss"
+                const match = timeStr.match(/(\d{2})\.(\d{2})\.(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/);
+                if (match) {
+                    const [, yy, mm, dd, hh, min, ss] = match;
+                    const year = parseInt(yy, 10) + 2000;
+                    posted_at = new Date(`${year}-${mm}-${dd}T${hh}:${min}:${ss}+09:00`).toISOString();
+                } else if (timeStr.includes(':')) {
+                    // "HH:mm:ss" means today
+                    const now = new Date();
+                    const todayStr = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' }); // YYYY-MM-DD
+                    posted_at = new Date(`${todayStr}T${timeStr}+09:00`).toISOString();
+                }
+            }
+
             if (title && urlPath) {
                 const hash = crypto.createHash('sha256').update(urlPath).digest('hex');
                 const deterministicId = [
@@ -100,7 +141,8 @@ export class PpomppuScraper extends Scraper {
                     deal_id: urlPath.split('no=').pop() || hash.substring(0, 8),
                     price: title.match(/([0-9,]+)\s*원/) ? title.match(/([0-9,]+)\s*원/)[1] : '0',
                     source: 'ppomppu',
-                    thumbnail
+                    thumbnail,
+                    posted_at
                 }));
             }
         }

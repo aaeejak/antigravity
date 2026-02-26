@@ -22,5 +22,11 @@ describe('PpomppuScraper (Infrastructure)', () => {
         expect(deals[0].url).toContain('ppomppu.co.kr');
         expect(deals[0].source).toBe('ppomppu');
         expect(deals[0].price).toBeDefined();
+        expect(deals[0].posted_at).not.toBeNull();
+        // Since the fixture might have a specific date (e.g. "26.02.22 19:28:41"), 
+        // we check that posted_at is a valid ISO string.
+        const time = new Date(deals[0].posted_at).getTime();
+        expect(time).not.toBeNaN();
+        expect(time).toBeGreaterThan(0);
     });
 });

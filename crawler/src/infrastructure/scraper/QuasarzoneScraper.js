@@ -46,6 +46,28 @@ export class QuasarzoneScraper extends Scraper {
                 thumbnail = img.attr('src');
             }
 
+            let posted_at = null;
+            const dateStr = $(el).find('.date').text().trim();
+            if (dateStr) {
+                const now = new Date();
+                if (dateStr === '방금') {
+                    posted_at = now.toISOString();
+                } else if (dateStr.includes('분 전')) {
+                    const mins = parseInt(dateStr, 10);
+                    now.setMinutes(now.getMinutes() - mins);
+                    posted_at = now.toISOString();
+                } else if (dateStr.includes('시간 전')) {
+                    const hours = parseInt(dateStr, 10);
+                    now.setHours(now.getHours() - hours);
+                    posted_at = now.toISOString();
+                } else if (dateStr.match(/^\d{2}-\d{2}$/)) {
+                    // MM-DD format, assume current year
+                    const [mm, dd] = dateStr.split('-');
+                    const year = now.getFullYear();
+                    posted_at = new Date(`${year}-${mm}-${dd}T00:00:00+09:00`).toISOString();
+                }
+            }
+
             if (title && url) {
                 const urlId = url.split('/').pop();
                 const hash = crypto.createHash('sha256').update(url).digest('hex');
@@ -64,7 +86,8 @@ export class QuasarzoneScraper extends Scraper {
                     deal_id: urlId,
                     price: priceText, // or price
                     source: 'quasarzone',
-                    thumbnail
+                    thumbnail,
+                    posted_at
                 }));
             }
         }

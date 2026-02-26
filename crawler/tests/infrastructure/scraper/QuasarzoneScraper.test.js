@@ -19,5 +19,10 @@ describe('QuasarzoneScraper (Infrastructure)', () => {
         expect(deals[0].url).toContain('quasarzone.com');
         expect(deals[0].source).toBe('quasarzone');
         expect(deals[0].price).toBeDefined();
+
+        expect(deals[0].posted_at).not.toBeNull();
+        const time = new Date(deals[0].posted_at).getTime();
+        expect(time).not.toBeNaN();
+        expect(time).toBeGreaterThan(0);
     });
 });

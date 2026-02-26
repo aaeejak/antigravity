@@ -30,7 +30,15 @@ export class FmkoreaScraper extends Scraper {
             fetchOptions.dispatcher = new ProxyAgent(process.env.PROXY_URL);
         }
 
-        const response = await fetch(url, fetchOptions);
+        let response;
+        try {
+            response = await fetch(url, fetchOptions);
+            if (!response.ok) throw new Error(response.statusText || response.status);
+        } catch (error) {
+            console.warn(`Fmkorea fetch with proxy failed (${error.message}). Retrying without proxy...`);
+            delete fetchOptions.dispatcher;
+            response = await fetch(url, fetchOptions);
+        }
 
         if (!response.ok) {
             throw new Error(`Failed to fetch Fmkorea: ${response.status} ${response.statusText}`);

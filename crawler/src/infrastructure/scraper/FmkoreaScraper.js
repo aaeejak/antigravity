@@ -78,56 +78,42 @@ export class FmkoreaScraper extends Scraper {
             }
 
             let thumbnail = null;
-            let posted_at = null;
-            try {
-                const articleHtml = await fetch(fullUrl, {
-                    headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-                        'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
-                        'Cache-Control': 'max-age=0',
-                        'Sec-Ch-Ua': '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
-                        'Sec-Ch-Ua-Mobile': '?0',
-                        'Sec-Ch-Ua-Platform': '"Windows"',
-                        'Sec-Fetch-Dest': 'document',
-                        'Sec-Fetch-Mode': 'navigate',
-                        'Sec-Fetch-Site': 'same-origin',
-                        'Sec-Fetch-User': '?1',
-                        'Upgrade-Insecure-Requests': '1',
-                        'Referer': 'https://www.fmkorea.com/hotdeal'
-                    }
-                }).then(r => r.text());
-                const _$ = cheerio.load(articleHtml);
-                const imgs = _$('.xe_content img').toArray();
-                let validSrc = null;
-                for (const img of imgs) {
-                    let src = _$(img).attr('src');
-                    if (src && !src.includes('transparent') && !src.includes('clear')) {
-                        validSrc = src;
-                        break;
-                    }
+            const img = $(element).find('img').first();
+            if (img.length) {
+                let src = img.attr('src') || img.attr('data-original');
+                if (src && !src.includes('transparent') && !src.includes('clear')) {
+                    if (src.startsWith('//')) src = `https:${src}`;
+                    else if (src.startsWith('/')) src = `https://fmkorea.com${src}`;
+                    // Optionally strip _70_50 or similar sizing suffixes if needed, but keeping original for safety
+                    thumbnail = src;
                 }
-                if (validSrc) {
-                    if (validSrc.startsWith('//')) validSrc = `https:${validSrc}`;
-                    else if (validSrc.startsWith('/')) validSrc = `https://fmkorea.com${validSrc}`;
-                    thumbnail = validSrc;
-                }
-
-                const dateStr = _$('.date.m_no').text().trim(); // e.g. "2026.02.26 15:53"
-                if (dateStr) {
-                    const match = dateStr.match(/(\d{4})\.(\d{2})\.(\d{2})\s+(\d{2}):(\d{2})/);
-                    if (match) {
-                        const [, year, mm, dd, hh, min] = match;
-                        posted_at = new Date(`${year}-${mm}-${dd}T${hh}:${min}:00+09:00`).toISOString();
-                    }
-                }
-            } catch (err) {
-                console.warn(`Failed to fetch high-res image for ${fullUrl}:`, err.message);
             }
 
-            // Note: Removed 70x50 fallback image per previous task
+            let posted_at = null;
+            const fullText = $(element).text().replace(/\s+/g, ' ');
 
-            await sleep(1000); // 1초 대기
+            // Try explicit class first
+            let dateStr = $(element).find('.regdate, .time, .date').text().trim();
+            if (!dateStr) {
+                // Regex fallback: looking for "HH:mm" (today) or "YYYY.MM.DD"
+                const match = fullText.match(/\b(20\d{2}\.\d{2}\.\d{2}|\d{2}:\d{2})\b/);
+                if (match) dateStr = match[1];
+            }
+
+            if (dateStr) {
+                if (dateStr.includes(':')) {
+                    // "HH:mm" -> Today
+                    const now = new Date();
+                    const todayStr = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' }); // YYYY-MM-DD
+                    posted_at = new Date(`${todayStr}T${dateStr}:00+09:00`).toISOString();
+                } else if (dateStr.includes('.')) {
+                    // "YYYY.MM.DD"
+                    const parts = dateStr.split('.');
+                    if (parts.length === 3) {
+                        posted_at = new Date(`${parts[0]}-${parts[1]}-${parts[2]}T00:00:00+09:00`).toISOString();
+                    }
+                }
+            }
 
             if (!posted_at) continue;
 

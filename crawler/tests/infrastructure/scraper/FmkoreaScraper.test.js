@@ -19,7 +19,7 @@ describe('FmkoreaScraper (Infrastructure)', () => {
         global.fetch = originalFetch;
     });
 
-    it('should parse valid deal items from html and fetch articleHtml for thumbnail/date', async () => {
+    it('should parse valid deal items from html and extract thumbnail/date from list html', async () => {
         // Mock list page HTML
         const listHtml = `
             <div class="fm_best_widget">
@@ -30,23 +30,19 @@ describe('FmkoreaScraper (Infrastructure)', () => {
                             <div class="hotdeal_info">
                                 <span>15,000원</span>
                             </div>
+                            <img src="/thumb.jpg" />
+                            <span class="regdate">15:53</span>
                         </div>
                     </li>
                 </ul>
             </div>
         `;
 
-        // Mock detail page HTML
-        const detailHtml = `
-            <div class="xe_content">
-                <img src="/image.jpg" />
-            </div>
-            <span class="date m_no">2026.02.26 15:53</span>
-        `;
+        // Mock detail page HTML (no longer used, but kept to avoid unused variable error if any)
 
         global.fetch.mockResolvedValueOnce({
             ok: true,
-            text: async () => detailHtml
+            text: async () => '' // no longer fetching detail
         });
 
         const scraper = new FmkoreaScraper();
@@ -55,7 +51,7 @@ describe('FmkoreaScraper (Infrastructure)', () => {
         expect(deals.length).toBe(1);
         expect(deals[0].title).toBe('Test Deal');
         expect(deals[0].url).toBe('https://fmkorea.com/hotdeal/12345');
-        expect(deals[0].thumbnail).toBe('https://fmkorea.com/image.jpg');
+        expect(deals[0].thumbnail).toBe('https://fmkorea.com/thumb.jpg');
 
         // newly added RED test expectations
         expect(deals[0].posted_at).not.toBeNull();

@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { ProxyAgent } from 'undici';
 import { Deal } from '../../domain/deal/Deal.js';
 import { Scraper } from '../../domain/deal/Scraper.js';
+import { PriceFormatter } from '../../domain/deal/PriceFormatter.js';
 
 export class QuasarzoneScraper extends Scraper {
     async scrape() {
@@ -37,7 +38,7 @@ export class QuasarzoneScraper extends Scraper {
             const url = urlPath.startsWith('/') ? `https://quasarzone.com${urlPath}` : urlPath;
 
             const priceText = $(el).find('.text-orange').first().text().trim();
-            const price = priceText.replace(/[^0-9]/g, ''); // Numeric price
+            const price = PriceFormatter.format(priceText);
 
             // Get thumbnail from the left side
             let thumbnail = null;

@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { ProxyAgent } from 'undici';
 import { Deal } from '../../domain/deal/Deal.js';
 import { Scraper } from '../../domain/deal/Scraper.js';
+import { PriceFormatter } from '../../domain/deal/PriceFormatter.js';
 import { execSync } from 'child_process';
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -80,12 +81,13 @@ export class FmkoreaScraper extends Scraper {
             if (infoDiv.length) {
                 const textParts = infoDiv.text().split(/[\|\n\t]/).map(s => s.trim()).filter(Boolean);
                 for (const part of textParts) {
-                    if (part.includes('원') && !part.includes('쇼핑몰') && !part.includes('배송') && !part.includes('원가')) {
-                        price = part;
+                    if ((part.includes('원') || part.includes('$') || part.match(/usd|jpy|eur/i)) && !part.includes('쇼핑몰') && !part.includes('배송') && !part.includes('원가')) {
+                        price = PriceFormatter.format(part);
                     } else if (part.includes('원') && part.includes('원가')) {
                         originalPrice = part.replace(/\(원가\)/g, '').replace(/원가/g, '').trim();
                     }
                 }
+                if (price === "0") price = PriceFormatter.format("0");
             }
 
             let thumbnail = null;

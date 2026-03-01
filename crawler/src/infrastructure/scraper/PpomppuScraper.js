@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import iconv from 'iconv-lite';
 import { Deal } from '../../domain/deal/Deal.js';
 import { Scraper } from '../../domain/deal/Scraper.js';
+import { PriceFormatter } from '../../domain/deal/PriceFormatter.js';
 
 export class PpomppuScraper extends Scraper {
     async scrape() {
@@ -75,7 +76,7 @@ export class PpomppuScraper extends Scraper {
                         title,
                         url: urlPath,
                         deal_id: urlPath.split('no=').pop() || hash.substring(0, 8),
-                        price: title.match(/([0-9,]+)\s*원/) ? title.match(/([0-9,]+)\s*원/)[1] : '0',
+                        price: PriceFormatter.format(title.match(/([0-9.,]+)\s*(원|엔|달러|유로|파운드|USD|JPY|EUR|GBP|\$|¥|€|£)/i) ? title.match(/([0-9.,]+)\s*(원|엔|달러|유로|파운드|USD|JPY|EUR|GBP|\$|¥|€|£)/i)[0] : '0'),
                         source: 'ppomppu',
                         thumbnail,
                         posted_at
@@ -139,7 +140,7 @@ export class PpomppuScraper extends Scraper {
                     title,
                     url: urlPath,
                     deal_id: urlPath.split('no=').pop() || hash.substring(0, 8),
-                    price: title.match(/([0-9,]+)\s*원/) ? title.match(/([0-9,]+)\s*원/)[1] : '0',
+                    price: PriceFormatter.format(title.match(/([0-9.,]+)\s*(원|엔|달러|유로|파운드|USD|JPY|EUR|GBP|\$|¥|€|£)/i) ? title.match(/([0-9.,]+)\s*(원|엔|달러|유로|파운드|USD|JPY|EUR|GBP|\$|¥|€|£)/i)[0] : '0'),
                     source: 'ppomppu',
                     thumbnail,
                     posted_at

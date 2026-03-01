@@ -41,6 +41,12 @@
 - [x] **GREEN**: `saveAll` 시 DB의 `created_at` 컬럼에 `d.posted_at`가 있으면 해당 값으로 덮어쓰도록 매핑 추가
 - [x] **Check**: 통합 테스트/수동 스크립트를 통한 실제 DB 반영 확인
 
+### Phase 6: Bugfix (NULL timestamps)
+- [x] **RED**: UI에서 일부 핫딜의 작성 시간이 "Unknown"으로 표시되는 이슈 파악
+- [x] **GREEN**: DB 내 `created_at`이 NULL인 11개의 핫딜(뽐뿌 광고 영역 등) 삭제
+- [x] **GREEN**: UI `supabase.js` 쿼리에 `.not('created_at', 'is', null)` 추가하여 필터링
+- [x] **GREEN**: 모든 크롤러(`Fmkorea`, `Ppomppu`, `Quasarzone`)가 파싱 실패 또는 시간 태그가 없는 항목을 무시(`continue`)하도록 수정
+
 ## 4. Quality Gates (품질 검증)
 - [x] 모든 단위/통합 테스트 완벽 통과 (Green Status)
 - [x] 린트(Lint) 에러/경고 없음

@@ -13,8 +13,10 @@ async function main() {
 
         const supabaseUrl = process.env.SUPABASE_URL;
         const supabaseKey = process.env.SUPABASE_KEY;
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-        const repository = new SupabaseDealRepository(supabaseUrl, supabaseKey);
+        const repository = new SupabaseDealRepository(supabaseClient);
 
         const scrapers = [
             new FmkoreaScraper(),

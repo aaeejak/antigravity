@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { ProxyAgent } from 'undici';
 import { Deal } from '../../domain/deal/Deal.js';
 import { Scraper } from '../../domain/deal/Scraper.js';
+import { execSync } from 'child_process';
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
@@ -12,17 +13,8 @@ export class FmkoreaScraper extends Scraper {
         const fetchOptions = {
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-                'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
-                'Cache-Control': 'max-age=0',
-                'Sec-Ch-Ua': '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
-                'Sec-Ch-Ua-Mobile': '?0',
-                'Sec-Ch-Ua-Platform': '"Windows"',
-                'Sec-Fetch-Dest': 'document',
-                'Sec-Fetch-Mode': 'navigate',
-                'Sec-Fetch-Site': 'none',
-                'Sec-Fetch-User': '?1',
-                'Upgrade-Insecure-Requests': '1'
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7'
             }
         };
 
@@ -30,21 +22,40 @@ export class FmkoreaScraper extends Scraper {
             fetchOptions.dispatcher = new ProxyAgent(process.env.PROXY_URL);
         }
 
-        let response;
+        let html = '';
         try {
-            response = await fetch(url, fetchOptions);
-            if (!response.ok) throw new Error(response.statusText || response.status);
+            let response = await fetch(url, fetchOptions);
+            if (!response.ok) {
+                if (response.status === 430) throw new Error("430 Unknown");
+                throw new Error(`Failed to fetch Fmkorea: ${response.status}`);
+            }
+            html = await response.text();
         } catch (error) {
-            console.warn(`Fmkorea fetch with proxy failed (${error.message}). Retrying without proxy...`);
-            delete fetchOptions.dispatcher;
-            response = await fetch(url, fetchOptions);
+            console.warn(`Fmkorea Node.js fetch failed (${error.message}). Falling back to curl...`);
+            try {
+                // Determine if we're on Windows (which uses curl.exe) or Linux/Android (which uses curl)
+                const isWin = process.platform === "win32";
+                const curlCmd = isWin ? 'curl.exe' : 'curl';
+
+                // Fetch bypassing Node.js TLS signature
+                const stdout = execSync(`${curlCmd} -s -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" "${url}"`, {
+                    maxBuffer: 10 * 1024 * 1024,
+                    encoding: 'latin1' // To prevent JS from failing on invalid UTF-8 bytes before cheerio parsing
+                });
+
+                // Convert latin1 buffer to utf8 string natively for Cheerio
+                const buffer = Buffer.from(stdout, 'latin1');
+                html = buffer.toString('utf8');
+
+            } catch (curlError) {
+                throw new Error(`Failed to fetch Fmkorea via curl: ${curlError.message}`);
+            }
         }
 
-        if (!response.ok) {
-            throw new Error(`Failed to fetch Fmkorea: ${response.status} ${response.statusText}`);
+        if (!html || html.length < 1000) {
+            throw new Error(`Failed to fetch Fmkorea: HTML too short, possibly blocked.`);
         }
 
-        const html = await response.text();
         return this.parseHtml(html);
     }
 

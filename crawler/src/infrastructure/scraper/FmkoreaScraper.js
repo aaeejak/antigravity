@@ -57,6 +57,10 @@ export class FmkoreaScraper extends Scraper {
             throw new Error(`Failed to fetch Fmkorea: HTML too short, possibly blocked.`);
         }
 
+        if (html.includes('에펨코리아 보안 시스템') || html.includes('Just a moment...') || html.includes('cf-browser-verification')) {
+            throw new Error(`Failed to fetch Fmkorea: Cloudflare block detected. If on mobile, try toggling Airplane Mode to change IP.`);
+        }
+
         return this.parseHtml(html);
     }
 

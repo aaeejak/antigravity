@@ -1,6 +1,7 @@
 import * as cheerio from 'cheerio';
 import crypto from 'crypto';
-import { ProxyAgent } from 'undici';
+import { gotScraping } from 'got-scraping';
+import { chromium } from 'playwright-chromium';
 import { Deal } from '../../domain/deal/Deal.js';
 import { Scraper } from '../../domain/deal/Scraper.js';
 import { PriceFormatter } from '../../domain/deal/PriceFormatter.js';
@@ -11,57 +12,124 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 export class FmkoreaScraper extends Scraper {
     async scrape() {
         const url = "https://www.fmkorea.com/hotdeal";
-        const fetchOptions = {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-                'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7'
-            }
-        };
-
-        if (process.env.PROXY_URL) {
-            fetchOptions.dispatcher = new ProxyAgent(process.env.PROXY_URL);
-        }
 
         let html = '';
+
+        // --- Tier 1: got-scraping (fast, spoofs TLS fingerprint) ---
         try {
-            let response = await fetch(url, fetchOptions);
-            if (!response.ok) {
-                if (response.status === 430) throw new Error("430 Unknown");
-                throw new Error(`Failed to fetch Fmkorea: ${response.status}`);
+            console.log('[FMKorea] Tier 1: Trying got-scraping...');
+            const response = await gotScraping({
+                url,
+                headerGeneratorOptions: {
+                    browsers: [{ name: 'chrome', minVersion: 120 }],
+                    devices: ['desktop'],
+                    locales: ['ko-KR'],
+                    operatingSystems: ['windows'],
+                },
+                timeout: { request: 15000 },
+                ...(process.env.PROXY_URL ? { proxyUrl: process.env.PROXY_URL } : {}),
+            });
+
+            if (response.statusCode !== 200) {
+                throw new Error(`got-scraping returned ${response.statusCode}`);
             }
-            html = await response.text();
+            html = response.body;
+
+            // Check if we got an actual page or a Cloudflare challenge
+            if (this._isBlocked(html)) {
+                throw new Error('got-scraping received Cloudflare challenge page');
+            }
+            console.log(`[FMKorea] got-scraping success (${html.length} bytes)`);
         } catch (error) {
-            console.warn(`Fmkorea Node.js fetch failed (${error.message}). Falling back to curl...`);
+            console.warn(`[FMKorea] Tier 1 failed: ${error.message}`);
+            html = '';
+
+            // --- Tier 2: Playwright headless browser (solves JS challenges) ---
             try {
-                // Determine if we're on Windows (which uses curl.exe) or Linux/Android (which uses curl)
-                const isWin = process.platform === "win32";
-                const curlCmd = isWin ? 'curl.exe' : 'curl';
+                console.log('[FMKorea] Tier 2: Trying Playwright headless browser...');
+                html = await this._fetchWithPlaywright(url);
+                console.log(`[FMKorea] Playwright success (${html.length} bytes)`);
+            } catch (pwError) {
+                console.warn(`[FMKorea] Tier 2 failed: ${pwError.message}`);
+                html = '';
 
-                // Fetch bypassing Node.js TLS signature
-                const stdout = execSync(`${curlCmd} -s -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" "${url}"`, {
-                    maxBuffer: 10 * 1024 * 1024,
-                    encoding: 'latin1' // To prevent JS from failing on invalid UTF-8 bytes before cheerio parsing
-                });
-
-                // Convert latin1 buffer to utf8 string natively for Cheerio
-                const buffer = Buffer.from(stdout, 'latin1');
-                html = buffer.toString('utf8');
-
-            } catch (curlError) {
-                throw new Error(`Failed to fetch Fmkorea via curl: ${curlError.message}`);
+                // --- Tier 3: curl fallback ---
+                try {
+                    console.log('[FMKorea] Tier 3: Trying curl...');
+                    const isWin = process.platform === "win32";
+                    const curlCmd = isWin ? 'curl.exe' : 'curl';
+                    const stdout = execSync(
+                        `${curlCmd} -s --max-time 15 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" -H "Accept-Language: ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7" "${url}"`,
+                        { maxBuffer: 10 * 1024 * 1024, encoding: 'latin1' }
+                    );
+                    const buffer = Buffer.from(stdout, 'latin1');
+                    html = buffer.toString('utf8');
+                    console.log(`[FMKorea] curl got ${html.length} bytes`);
+                } catch (curlError) {
+                    throw new Error(`Failed to fetch Fmkorea: All 3 tiers failed. Last: ${curlError.message}`);
+                }
             }
         }
 
         if (!html || html.length < 1000) {
-            throw new Error(`Failed to fetch Fmkorea: HTML too short, possibly blocked.`);
+            throw new Error(`Failed to fetch Fmkorea: HTML too short (${html.length} bytes), possibly blocked.`);
         }
 
-        if (html.includes('에펨코리아 보안 시스템') || html.includes('Just a moment...') || html.includes('cf-browser-verification')) {
-            throw new Error(`Failed to fetch Fmkorea: Cloudflare block detected. If on mobile, try toggling Airplane Mode to change IP.`);
+        if (this._isBlocked(html)) {
+            throw new Error(`Failed to fetch Fmkorea: Cloudflare/security block detected. Try changing IP (toggle Airplane Mode on mobile).`);
         }
 
         return this.parseHtml(html);
+    }
+
+    _isBlocked(html) {
+        if (!html || html.length < 1000) return true;
+        return html.includes('에펨코리아 보안 시스템') ||
+            html.includes('Just a moment...') ||
+            html.includes('cf-browser-verification');
+    }
+
+    async _fetchWithPlaywright(url) {
+        let browser = null;
+        try {
+            browser = await chromium.launch({
+                headless: true,
+                args: ['--no-sandbox', '--disable-setuid-sandbox'],
+            });
+            const context = await browser.newContext({
+                userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+                locale: 'ko-KR',
+                timezoneId: 'Asia/Seoul',
+            });
+            const page = await context.newPage();
+
+            await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+
+            // Wait for the actual deal list to appear (Cloudflare challenge will resolve first)
+            try {
+                await page.waitForSelector('.fm_best_widget', { timeout: 20000 });
+            } catch {
+                // If selector doesn't appear, still try to get whatever HTML we have
+                console.warn('[FMKorea] Playwright: .fm_best_widget not found, checking page content...');
+            }
+
+            // Small delay to let any remaining JS render
+            await sleep(2000);
+
+            const html = await page.content();
+            await browser.close();
+            browser = null;
+
+            if (this._isBlocked(html)) {
+                throw new Error('Playwright page is still blocked by Cloudflare');
+            }
+
+            return html;
+        } finally {
+            if (browser) {
+                await browser.close().catch(() => { });
+            }
+        }
     }
 
     async parseHtml(html) {

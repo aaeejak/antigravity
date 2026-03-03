@@ -58,8 +58,8 @@ function createDealCard(deal) {
 
     let finalImageUrl = imageUrl;
     if (imageUrl && rawSource.toLowerCase() === 'ppomppu') {
-        // Ppomppu heavily blocks hotlinking even with no-referrer. Use a free image proxy.
-        finalImageUrl = `https://images.weserv.nl/?url=${encodeURIComponent(imageUrl)}`;
+        // Ppomppu heavily blocks hotlinking. Use our custom Supabase Edge Function proxy.
+        finalImageUrl = `https://vhhlysbllakqbpxipfnv.supabase.co/functions/v1/image-proxy?url=${encodeURIComponent(imageUrl)}`;
     }
 
     card.innerHTML = `

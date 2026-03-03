@@ -175,22 +175,41 @@ export class FmkoreaScraper extends Scraper {
             }
 
             let posted_at = null;
-            const fullText = $(element).text().replace(/\s+/g, ' ');
+
+            // Extract time from metadata area (.li_side or .author), NOT the full element text
+            // This avoids matching time-like patterns in titles (e.g. "23:00 마감")
+            const metaDiv = $(element).find('.li_side, .author');
+            let metaText = metaDiv.length ? metaDiv.text().replace(/\s+/g, ' ') : '';
 
             // Try explicit class first
             let dateStr = $(element).find('.regdate, .time, .date').text().trim();
+            if (!dateStr && metaText) {
+                // Regex fallback on metadata area only
+                const match = metaText.match(/\b(20\d{2}\.\d{2}\.\d{2}|\d{2}:\d{2})\b/);
+                if (match) dateStr = match[1];
+            }
             if (!dateStr) {
-                // Regex fallback: looking for "HH:mm" (today) or "YYYY.MM.DD"
+                // Final fallback: full element text
+                const fullText = $(element).text().replace(/\s+/g, ' ');
                 const match = fullText.match(/\b(20\d{2}\.\d{2}\.\d{2}|\d{2}:\d{2})\b/);
                 if (match) dateStr = match[1];
             }
 
             if (dateStr) {
                 if (dateStr.includes(':')) {
-                    // "HH:mm" -> Today
+                    // "HH:mm" -> assume today in KST; if result is in the future, use yesterday
                     const now = new Date();
                     const todayStr = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' }); // YYYY-MM-DD
-                    posted_at = new Date(`${todayStr}T${dateStr}:00+09:00`).toISOString();
+                    const candidate = new Date(`${todayStr}T${dateStr}:00+09:00`);
+
+                    // If parsed time is more than 1 minute in the future, it's likely yesterday's post
+                    if (candidate.getTime() > now.getTime() + 60_000) {
+                        const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+                        const yesterdayStr = yesterday.toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
+                        posted_at = new Date(`${yesterdayStr}T${dateStr}:00+09:00`).toISOString();
+                    } else {
+                        posted_at = candidate.toISOString();
+                    }
                 } else if (dateStr.includes('.')) {
                     // "YYYY.MM.DD"
                     const parts = dateStr.split('.');

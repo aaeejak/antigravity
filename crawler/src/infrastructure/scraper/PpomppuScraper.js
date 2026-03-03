@@ -37,9 +37,16 @@ export class PpomppuScraper extends Scraper {
 
                 const tr = titleTag.closest('tr');
                 let thumbnail = null;
-                const img = tr.find('.thumb_border');
-                if (img.length) {
-                    thumbnail = img.attr('src');
+                const thumbLink = tr.find('.baseList-thumb');
+                if (thumbLink.length) {
+                    // Prefer larger image from tooltip attribute (format: "P_img://cdn2...")
+                    const tooltip = thumbLink.attr('tooltip') || '';
+                    const tooltipMatch = tooltip.match(/P_img:(.*)/);
+                    if (tooltipMatch) {
+                        thumbnail = tooltipMatch[1].trim();
+                    } else {
+                        thumbnail = thumbLink.find('img').attr('src');
+                    }
                     if (thumbnail && thumbnail.startsWith('//')) thumbnail = `https:${thumbnail}`;
                 }
 
@@ -97,9 +104,16 @@ export class PpomppuScraper extends Scraper {
             else if (!urlPath.startsWith('http')) urlPath = `https://www.ppomppu.co.kr/zboard/${urlPath}`;
 
             let thumbnail = null;
-            const img = $(el).find('.thumb_border');
-            if (img.length) {
-                thumbnail = img.attr('src');
+            const thumbLink = $(el).find('.baseList-thumb');
+            if (thumbLink.length) {
+                // Prefer larger image from tooltip attribute (format: "P_img://cdn2...")
+                const tooltip = thumbLink.attr('tooltip') || '';
+                const tooltipMatch = tooltip.match(/P_img:(.*)/);
+                if (tooltipMatch) {
+                    thumbnail = tooltipMatch[1].trim();
+                } else {
+                    thumbnail = thumbLink.find('img').attr('src');
+                }
                 if (thumbnail && thumbnail.startsWith('//')) thumbnail = `https:${thumbnail}`;
             }
 

@@ -56,10 +56,16 @@ function createDealCard(deal) {
     const priceText = deal.price ? deal.price : '가격 정보 없음';
     const seller = deal.store || deal.seller || ''; // Based on the target site logic
 
+    let finalImageUrl = imageUrl;
+    if (imageUrl && rawSource.toLowerCase() === 'ppomppu') {
+        // Ppomppu heavily blocks hotlinking even with no-referrer. Use a free image proxy.
+        finalImageUrl = `https://images.weserv.nl/?url=${encodeURIComponent(imageUrl)}`;
+    }
+
     card.innerHTML = `
         <div class="deal-thumbnail-container">
-            ${imageUrl
-            ? `<img src="${imageUrl}" alt="${deal.title}" class="deal-thumbnail" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMyYTJhMmEiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZmlsbD0iIzg4OCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTRweCIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+SW1hZ2UgTm90IEZvdW5kPC90ZXh0Pjwvc3ZnPiI;'">`
+            ${finalImageUrl
+            ? `<img src="${finalImageUrl}" alt="${deal.title}" class="deal-thumbnail" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMyYTJhMmEiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZmlsbD0iIzg4OCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTRweCIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+SW1hZ2UgTm90IEZvdW5kPC90ZXh0Pjwvc3ZnPiI;'">`
             : `<div class="no-image-placeholder">No Image</div>`
         }
             ${seller ? `<span class="deal-selling-site">${seller}</span>` : ''}

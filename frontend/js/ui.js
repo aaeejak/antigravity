@@ -7,6 +7,12 @@ function calcTimeAgo(dateString) {
     const date = new Date(dateString);
     const now = new Date();
     const diffInMs = now - date;
+
+    // Guard against future dates (negative diff) – treat as "just now"
+    if (diffInMs < 0) {
+        return { text: '방금 전', class: 'badge-fresh' };
+    }
+
     const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
     const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
     const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));

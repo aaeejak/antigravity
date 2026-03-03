@@ -165,11 +165,11 @@ export class FmkoreaScraper extends Scraper {
             let thumbnail = null;
             const img = $(element).find('img').first();
             if (img.length) {
-                let src = img.attr('src') || img.attr('data-original');
+                // FMKorea uses lazy loading: src is transparent.gif, real URL is in data-original
+                let src = img.attr('data-original') || img.attr('data-src') || img.attr('src');
                 if (src && !src.includes('transparent') && !src.includes('clear')) {
                     if (src.startsWith('//')) src = `https:${src}`;
                     else if (src.startsWith('/')) src = `https://fmkorea.com${src}`;
-                    // Optionally strip _70_50 or similar sizing suffixes if needed, but keeping original for safety
                     thumbnail = src;
                 }
             }

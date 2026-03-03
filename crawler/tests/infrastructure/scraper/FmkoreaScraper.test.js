@@ -20,7 +20,7 @@ describe('FmkoreaScraper (Infrastructure)', () => {
     });
 
     it('should parse valid deal items from html and extract thumbnail/date from list html', async () => {
-        // Mock list page HTML
+        // Mock list page HTML (FMKorea uses lazy loading: src=transparent.gif, data-original=real URL)
         const listHtml = `
             <div class="fm_best_widget">
                 <ul>
@@ -30,7 +30,7 @@ describe('FmkoreaScraper (Infrastructure)', () => {
                             <div class="hotdeal_info">
                                 <span>15,000원</span>
                             </div>
-                            <img src="/thumb.jpg" />
+                            <img class="thumb" src="//image.fmkorea.com/classes/lazy/img/transparent.gif" data-original="//image.fmkorea.com/filesn/cache/thumb/12345_70x50.crop.webp" />
                             <span class="regdate">15:53</span>
                         </div>
                     </li>
@@ -51,7 +51,7 @@ describe('FmkoreaScraper (Infrastructure)', () => {
         expect(deals.length).toBe(1);
         expect(deals[0].title).toBe('Test Deal');
         expect(deals[0].url).toBe('https://fmkorea.com/hotdeal/12345');
-        expect(deals[0].thumbnail).toBe('https://fmkorea.com/thumb.jpg');
+        expect(deals[0].thumbnail).toBe('https://image.fmkorea.com/filesn/cache/thumb/12345_70x50.crop.webp');
 
         // newly added RED test expectations
         expect(deals[0].posted_at).not.toBeNull();

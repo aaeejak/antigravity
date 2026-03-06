@@ -51,7 +51,7 @@ describe('FmkoreaScraper (Infrastructure)', () => {
         expect(deals.length).toBe(1);
         expect(deals[0].title).toBe('Test Deal');
         expect(deals[0].url).toBe('https://fmkorea.com/hotdeal/12345');
-        expect(deals[0].thumbnail).toBe('https://image.fmkorea.com/filesn/cache/thumb/12345_70x50.crop.webp');
+        expect(deals[0].thumbnail).toBe('https://image.fmkorea.com/filesn/cache/thumb/12345_300x0.webp');
 
         // newly added RED test expectations
         expect(deals[0].posted_at).not.toBeNull();

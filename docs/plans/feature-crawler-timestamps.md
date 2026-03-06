@@ -33,9 +33,9 @@
 - [x] **Check**: 단위 테스트 통과
 
 ### Phase 4: FmkoreaScraper 시간 추출 로직 구현
-- [ ] **RED**: Fmkorea 개별 게시물 HTML에서 작성 시간 추출 검증 테스트 작성 (`FmkoreaScraper.test.js`)
-- [ ] **GREEN**: 상세 페이지(`articleHtml`)에서 `.date.m_no` 또는 `.date` 태그를 읽어와 "YYYY.MM.DD HH:mm" 형태를 ISO로 파싱
-- [ ] **Check**: 단위 테스트 통과
+- [x] **RED**: Fmkorea 개별 게시물 HTML에서 작성 시간 추출 검증 테스트 작성 (`FmkoreaScraper.test.js`)
+- [x] **GREEN**: 상세 페이지(`articleHtml`)에서 `.date.m_no` 또는 `.date` 태그를 읽어와 "YYYY.MM.DD HH:mm" 형태를 ISO로 파싱
+- [x] **Check**: 단위 테스트 통과
 
 ### Phase 5: Repository 반영 (`SupabaseDealRepository.js`)
 - [x] **GREEN**: `saveAll` 시 DB의 `created_at` 컬럼에 `d.posted_at`가 있으면 해당 값으로 덮어쓰도록 매핑 추가

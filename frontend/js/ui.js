@@ -56,10 +56,13 @@ function createDealCard(deal) {
     const priceText = deal.price ? deal.price : '가격 정보 없음';
     const seller = deal.store || deal.seller || ''; // Based on the target site logic
 
+    const IMAGE_PROXY_URL = 'https://vhhlysbllakqbpxipfnv.supabase.co/functions/v1/image-proxy';
+
     let finalImageUrl = imageUrl;
-    if (imageUrl && rawSource.toLowerCase() === 'ppomppu') {
-        // Ppomppu heavily blocks hotlinking. Use our custom Supabase Edge Function proxy.
-        finalImageUrl = `https://vhhlysbllakqbpxipfnv.supabase.co/functions/v1/image-proxy?url=${encodeURIComponent(imageUrl)}`;
+    const sourceLower = rawSource.toLowerCase();
+    if (imageUrl && (sourceLower === 'ppomppu' || sourceLower === 'fmkorea')) {
+        // Proxy images from sites that block hotlinking
+        finalImageUrl = `${IMAGE_PROXY_URL}?url=${encodeURIComponent(imageUrl)}`;
     }
 
     card.innerHTML = `

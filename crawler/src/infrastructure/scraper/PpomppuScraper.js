@@ -48,6 +48,8 @@ export class PpomppuScraper extends Scraper {
                         thumbnail = thumbLink.find('img').attr('src');
                     }
                     if (thumbnail && thumbnail.startsWith('//')) thumbnail = `https:${thumbnail}`;
+                    // Remove m_ prefix to get original quality instead of mobile thumbnail
+                    if (thumbnail) thumbnail = thumbnail.replace(/\/m_(\d{14})/, '/$1');
                 }
 
                 let posted_at = null;
@@ -115,6 +117,8 @@ export class PpomppuScraper extends Scraper {
                     thumbnail = thumbLink.find('img').attr('src');
                 }
                 if (thumbnail && thumbnail.startsWith('//')) thumbnail = `https:${thumbnail}`;
+                // Remove m_ prefix to get original quality instead of mobile thumbnail
+                if (thumbnail) thumbnail = thumbnail.replace(/\/m_(\d{14})/, '/$1');
             }
 
             let posted_at = null;

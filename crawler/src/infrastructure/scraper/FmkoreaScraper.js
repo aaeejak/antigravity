@@ -170,6 +170,8 @@ export class FmkoreaScraper extends Scraper {
                 if (src && !src.includes('transparent') && !src.includes('clear')) {
                     if (src.startsWith('//')) src = `https:${src}`;
                     else if (src.startsWith('/')) src = `https://fmkorea.com${src}`;
+                    // Upgrade low-quality 70x50 crop thumbnails to higher quality (300px width)
+                    src = src.replace(/_\d+x\d+\.crop\.webp/, '_300x0.webp');
                     thumbnail = src;
                 }
             }

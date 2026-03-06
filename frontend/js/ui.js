@@ -60,8 +60,10 @@ function createDealCard(deal) {
 
     let finalImageUrl = imageUrl;
     const sourceLower = rawSource.toLowerCase();
-    if (imageUrl && (sourceLower === 'ppomppu' || sourceLower === 'fmkorea')) {
-        // Proxy images from sites that block hotlinking
+    if (imageUrl && sourceLower === 'ppomppu') {
+        // Ppomppu heavily blocks hotlinking => Use proxy.
+        // FmKorea blocks our proxy's fetch request (returns 404), so let the browser load it directly 
+        // using referrerpolicy="no-referrer" which usually bypasses their hotlink protection.
         finalImageUrl = `${IMAGE_PROXY_URL}?url=${encodeURIComponent(imageUrl)}`;
     }
 
